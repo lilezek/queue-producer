@@ -1,0 +1,22 @@
+{
+  "name": "producer",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "^4.16.1",
+    "express-ws": "^3.0.0",
+    "npm": "^5.4.2",
+    "queue-protocol": "git+https://github.com/lilezek/websocket-queue.git",
+    "ws": "^3.2.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node bin/app.js"
+  },
+  "devDependencies": {
+    "@types/express": "^4.0.37",
+    "@types/node": "^8.0.31",
+    "@types/ws": "^3.0.2",
+    "typescript": "^2.5.3"
+  }
+}
