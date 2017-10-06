@@ -5,7 +5,6 @@
   "dependencies": {
     "express": "^4.16.1",
     "express-ws": "^3.0.0",
-    "npm": "^5.4.2",
     "queue-protocol": "git+https://github.com/lilezek/websocket-queue.git",
     "ws": "^3.2.0"
   },

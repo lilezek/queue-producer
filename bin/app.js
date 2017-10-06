@@ -4,6 +4,8 @@ const express = require("express");
 const log = require("./logger");
 const config_1 = require("./config");
 const statistics_1 = require("./statistics");
+const queue_protocol_1 = require("queue-protocol");
+const consumers_1 = require("./consumers");
 const app = express();
 const expressWs = require("express-ws")(app);
 exports.GlobalState = {
@@ -23,18 +25,31 @@ app.use(express.static("public"));
 app.use(statistics_1.StatisticsRouter);
 // Websocket connection
 app.ws('/produce', (ws, req) => {
-    ws.on("close", () => {
-        exports.GlobalState.connections -= 1;
-    });
-    ws.on("open", () => {
-        exports.GlobalState.connections += 1;
-    });
+    // For every websocket connection at /produce we have a WebSocketQueue.
+    exports.GlobalState.connections += 1;
+    const producerConnection = new queue_protocol_1.WebSocketQueue(ws, config_1.default.psk);
+    // After a short period, we close the connection if no hello has yet received.
+    // TODO: Move this code to WebSocketQueue constructor.
+    setTimeout(() => {
+        if (!producerConnection.secure) {
+            ws.close();
+        }
+    }, config_1.default.connectionTimeout);
     ws.on('message', (msg) => {
         exports.GlobalState.messages += 1;
         log.log(JSON.stringify(msg));
     });
+    ws.on("close", () => {
+        exports.GlobalState.connections -= 1;
+    });
 });
-// Listen on port 3000, IP defaults to 127.0.0.1
-app.listen(config_1.default.port);
-// Put a friendly message on the terminal
-console.log("Server running at http://127.0.0.1:" + config_1.default.port + "/");
+console.log("Connecting to consumers");
+consumers_1.ConnectToConsumers().then((consumerList) => {
+    if (consumerList) {
+        // Listen on port 3000, IP defaults to 127.0.0.1
+        app.listen(config_1.default.port, () => {
+            // Put a friendly message on the terminal
+            console.log("Server running at http://127.0.0.1:" + config_1.default.port + "/");
+        });
+    }
+});

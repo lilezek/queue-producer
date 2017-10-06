@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const config_1 = require("./config");
 const WebSocket = require("ws");
+const queue_protocol_1 = require("queue-protocol");
 const consumers = [];
 function ConnectToConsumers() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -21,9 +22,9 @@ function ConnectToConsumers() {
             const promises = [];
             for (const consumer of config_1.default.consumers) {
                 promises.push(new Promise((res, rej) => {
-                    const ws = new WebSocket(consumer);
+                    const ws = new WebSocket("ws://" + consumer);
                     ws.on("open", () => {
-                        res();
+                        res(new queue_protocol_1.WebSocketQueue(ws, config_1.default.psk));
                     });
                     ws.on("error", (e) => {
                         rej(e);
@@ -34,3 +35,4 @@ function ConnectToConsumers() {
         }
     });
 }
+exports.ConnectToConsumers = ConnectToConsumers;
